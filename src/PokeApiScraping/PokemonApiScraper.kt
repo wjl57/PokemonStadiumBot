@@ -2,7 +2,6 @@ package PokeApiScraping
 
 import PokemonStadium.*
 import com.jaunt.*
-import java.awt.List
 
 /**
  * Created by william on 4/21/16.
@@ -58,25 +57,27 @@ class PokemonApiScraper {
         }
 
         val typesJNode = jnode.getFirst("types")
-        val typeNames = typesJNode.findEach("type").map { it.get("name").toString() }
+        val typeNames = typesJNode.findEach("type").map { Type.FromName(it.get("name").toString()) }.toSet()
         val statsJNode = jnode.getFirst("stats")
 
         val stats = statsJNode.map {
             it.get("stat").get("name").toString() to it.get("base_stat").toInt()
         }
         var statsDict = stats.toMap()
-
-        val pd = PokemonDao(
-            PokemonId = GetJNodeInt(jnode, "id"),
-            Name = GetJNodeString(jnode, "name"),
-            LearnableMoves = learnableMoves,
-            TypeNames = typeNames,
+        val baseStatsDao = BaseStatsDao(
             Hp = statsDict["hp"]!!.toInt(),
             Attack = statsDict["attack"]!!.toInt(),
             Defense = statsDict["defense"]!!.toInt(),
             SpAttack = statsDict["special-attack"]!!.toInt(),
             SpDefense = statsDict["special-defense"]!!.toInt(),
             Speed = statsDict["speed"]!!.toInt()
+        )
+        val pd = PokemonDao(
+            PokemonId = GetJNodeInt(jnode, "id"),
+            Name = GetJNodeString(jnode, "name"),
+            LearnableMoves = learnableMoves,
+            TypeNames = typeNames,
+            BaseStats = baseStatsDao
         )
 
         return pd;
